@@ -1,0 +1,22 @@
+# Copy to terraform.tfvars and adjust. terraform.tfvars is git-ignored.
+# AWS credentials do NOT belong here - use `aws configure` or AWS_PROFILE.
+
+aws_region         = "ap-south-1"
+project_name       = "stockpilot"
+environment        = "dev"
+cluster_name       = "stockpilot-eks"
+kubernetes_version = "1.36"
+
+vpc_cidr = "10.20.0.0/16"
+az_count = 2
+
+node_instance_types = ["t3.medium"]
+node_capacity_type  = "ON_DEMAND" # "SPOT" is ~60-70% cheaper for a lab
+node_min_size       = 2
+node_desired_size   = 2
+node_max_size       = 4
+
+# Enables keyless GitHub Actions deployments (OIDC). Use your "owner/repository".
+github_repository = "your-github-username/stockpilot"
+# Set to false if this AWS account already has the token.actions.githubusercontent.com provider.
+create_github_oidc_provider = true
