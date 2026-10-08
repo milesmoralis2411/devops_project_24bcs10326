@@ -24,7 +24,7 @@ cp terraform.tfvars.example terraform.tfvars
 #   github_repository = "<your-github-user>/<your-repo>"   (enables keyless CI deploys)
 #   create_github_oidc_provider = false   only if your account already has the GitHub OIDC provider
 terraform init
-terraform plan -out tfplan        # 📸 screenshot: "Plan: 64 to add, 0 to change, 0 to destroy"
+terraform plan -out tfplan        # 📸 screenshot: "Plan: 63 to add" (58 if github_repository is empty)
 terraform apply tfplan            # 15-20 min
 terraform output                  # cluster name, VPC/subnet IDs, deploy role ARN
 ```
@@ -129,7 +129,7 @@ helm upgrade --install stockpilot ./helm/stockpilot -n stockpilot -f helm/stockp
 ## 8. Tear everything down
 
 ```bash
-scripts/eks-teardown.sh      # 📸 "Destroy complete! Resources: 64 destroyed."
+scripts/eks-teardown.sh      # 📸 "Destroy complete! Resources: N destroyed."
 ```
 
 The script uninstalls the Helm releases first, which deletes the AWS load balancer and
@@ -148,3 +148,7 @@ Finally, check *EC2 → Load Balancers* and *EC2 → Volumes* in the console for
 | Ingress has no address / site unreachable | Traefik not installed (step 3) or NLB still provisioning |
 | HPA shows `<unknown>` | metrics-server not installed or still starting (1–2 min) |
 | `terraform destroy` hangs on subnets/IGW | a Kubernetes LoadBalancer still exists, so use `scripts/eks-teardown.sh` |
+| `UnauthorizedOperation ... with an explicit deny in a service control policy` | the account belongs to an AWS Organization that only allows certain regions (new Free-plan accounts can be limited to their home region). Find the allowed one, e.g. `aws ec2 describe-availability-zones --region ap-southeast-2`, set `aws_region = "<that region>"` in `terraform.tfvars`, and use `AWS_REGION=<that region> scripts/eks-teardown.sh`. The submission environment was built in **ap-southeast-2 (Sydney)** for this reason. |
+| Node group stuck in `CREATING`; CloudTrail `RunInstances`: "instance type is not eligible for Free Tier" | Free-plan account. Set `node_instance_types = ["m7i-flex.large"]` (or another type from `aws ec2 describe-instance-types --filters Name=free-tier-eligible,Values=true`) and apply again |
+| `iam:CreateOpenIDConnectProvider ... explicit deny in a service control policy` | the organization forbids OIDC providers. The EBS driver already uses Pod Identity, so set `github_repository = ""` to skip the keyless GitHub deploy role; the CI deploy job then stays skipped |
+| India sign-up: KYC step fails with "error processing your request" for every document | an AWS-side problem; open an Account and billing support case from the link in the error box, or retry later from another network |

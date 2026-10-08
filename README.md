@@ -343,16 +343,20 @@ Values files: `values.yaml` (defaults) · `values-dev.yaml` (kind: local images,
 
 ## 11. Terraform: AWS VPC + EKS
 
-[`terraform/`](terraform/README.md) provisions, in `ap-south-1`: a VPC with **2 public + 2
-private subnets** across two AZs, an Internet gateway and NAT gateway, an **EKS 1.36**
-cluster with a **managed node group** (2× t3.medium, Amazon Linux 2023), EKS add-ons
-(VPC CNI, CoreDNS, kube-proxy, Pod Identity agent, **EBS CSI driver** with an IRSA role),
-and optionally the GitHub OIDC deploy role.
+[`terraform/`](terraform/README.md) provisions, in the region set by `aws_region` (default
+`ap-south-1`): a VPC with **2 public + 2 private subnets** across two AZs, an Internet gateway
+and NAT gateway, an **EKS 1.36** cluster with a **managed node group** (2× t3.medium, Amazon
+Linux 2023), EKS add-ons (VPC CNI, CoreDNS, kube-proxy, Pod Identity agent, **EBS CSI driver**
+with an EKS Pod Identity role), and optionally the GitHub OIDC deploy role.
+
+The submission environment was built in **`ap-southeast-2` (Sydney)**. The AWS Free-plan
+account used is limited to that region by an AWS Organizations service control policy. The
+Terraform is identical; only `aws_region` in `terraform.tfvars` differs.
 
 ```bash
 cd terraform && cp terraform.tfvars.example terraform.tfvars
 terraform init && terraform validate && terraform test      # test runs offline with mocked AWS
-terraform plan -out tfplan && terraform apply tfplan        # Plan: 64 to add
+terraform plan -out tfplan && terraform apply tfplan        # Plan: 58 to add (63 with GitHub OIDC)
 ```
 
 Full walkthrough (cluster add-ons, GitHub settings, first deploy, tear-down):

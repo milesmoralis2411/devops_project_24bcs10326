@@ -13,7 +13,7 @@ AWS account (ap-south-1)
     └── EKS cluster "stockpilot-eks" (Kubernetes 1.36)   eks.tf   (terraform-aws-modules/eks ~> 21.29)
         ├── add-ons: vpc-cni, coredns, kube-proxy, pod-identity-agent, aws-ebs-csi-driver
         ├── managed node group "default": 2 x t3.medium (min 2 / max 4), Amazon Linux 2023
-        └── IAM role for the EBS CSI driver (IRSA) -> PostgreSQL volumes
+        └── IAM role for the EBS CSI driver (EKS Pod Identity) -> PostgreSQL volumes
 GitHub OIDC provider + deploy role (optional)           github-oidc.tf
 ```
 
@@ -46,7 +46,7 @@ terraform init                 # download providers + modules
 terraform fmt -recursive       # canonical formatting
 terraform validate             # static checks
 terraform test                 # offline plan against mocked AWS (3 tests)
-terraform plan -out tfplan     # "Plan: 64 to add" (59 without github_repository) - screenshot this
+terraform plan -out tfplan     # "Plan: 63 to add" (58 without github_repository) - screenshot this
 terraform apply tfplan         # 15-20 minutes (EKS control plane + nodes)
 
 $(terraform output -raw configure_kubectl)   # aws eks update-kubeconfig ...
@@ -77,6 +77,13 @@ then lists anything still tagged for the cluster (the list should be empty).
 * **AL2023 node AMI**: EKS stopped publishing Amazon Linux 2 AMIs for 1.33+.
 * **EBS CSI driver**: without it, PersistentVolumeClaims (PostgreSQL) stay `Pending` on EKS.
   New clusters also have no default StorageClass, hence `k8s/eks-storageclass-gp3.yaml`.
+  Its AWS permissions come through **EKS Pod Identity**, not IRSA, so no IAM OIDC provider
+  is needed (`enable_irsa = false`). Some organizations, including the Free-plan account used
+  for the submission, block `iam:CreateOpenIDConnectProvider`.
+* **Free-plan accounts** only allow free-tier-eligible instance types. `t3.medium` is not one,
+  so the submission environment used `node_instance_types = ["m7i-flex.large"]`
+  (2 vCPU / 8 GiB, eligible). List the eligible types with
+  `aws ec2 describe-instance-types --filters Name=free-tier-eligible,Values=true`.
 * **Single NAT gateway** keeps the lab cheap; production would use one per AZ.
 * **GitHub OIDC** replaces long-lived `AWS_ACCESS_KEY_ID` secrets in GitHub with short-lived
   credentials, and only the `main` branch of your repository can assume the role.
