@@ -1,0 +1,52 @@
+# SCENARIO 3 - CrashLoopBackOff
+# A copy of the API points DATABASE_URL at a database host that does not exist.
+# The container starts, the prestart step cannot reach PostgreSQL, exits non-zero,
+# and Kubernetes restarts it with growing back-off.
+#   kubectl apply -f troubleshooting/03-crashloop-bad-database-url.yaml
+#
+# Uses the image that is already deployed. Set it first:
+#   IMAGE=$(kubectl get deploy stockpilot-backend -n stockpilot -o jsonpath='{.spec.template.spec.containers[0].image}')
+#   sed "s#STOCKPILOT_BACKEND_IMAGE#$IMAGE#" troubleshooting/03-crashloop-bad-database-url.yaml | kubectl apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lab-crashloop
+  namespace: stockpilot
+  labels:
+    app: lab-crashloop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lab-crashloop
+  template:
+    metadata:
+      labels:
+        app: lab-crashloop
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: backend
+          image: STOCKPILOT_BACKEND_IMAGE
+          env:
+            # BUG: wrong service name (should be stockpilot-postgres).
+            - name: DATABASE_URL
+              value: postgresql+psycopg://stockpilot:wrong@postgres-does-not-exist:5432/stockpilot
+            # Give up quickly so the crash loop is visible within a minute.
+            - name: DB_WAIT_TIMEOUT_SECONDS
+              value: "6"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi

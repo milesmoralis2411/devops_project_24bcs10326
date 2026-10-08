@@ -1,0 +1,41 @@
+# SCENARIO 1 - ImagePullBackOff
+# A release pipeline pushed a manifest that references an image tag that was never built.
+#   kubectl apply -f troubleshooting/01-broken-image.yaml
+# Symptom: pod stuck in ErrImagePull / ImagePullBackOff. See troubleshooting/README.md.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lab-broken-image
+  namespace: stockpilot
+  labels:
+    app: lab-broken-image
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lab-broken-image
+  template:
+    metadata:
+      labels:
+        app: lab-broken-image
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: backend
+          # BUG: this tag does not exist in the registry.
+          image: ghcr.io/stockpilot-demo/stockpilot-backend:does-not-exist
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi

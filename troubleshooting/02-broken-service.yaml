@@ -1,0 +1,19 @@
+# SCENARIO 2 - Service with no endpoints
+# A teammate added a Service for internal API access, but its selector uses
+# component=api while the backend pods are labelled component=backend.
+#   kubectl apply -f troubleshooting/02-broken-service.yaml
+# Symptom: the Service exists, but requests to it hang / are refused.
+apiVersion: v1
+kind: Service
+metadata:
+  name: lab-broken-service
+  namespace: stockpilot
+spec:
+  selector:
+    app.kubernetes.io/name: stockpilot
+    # BUG: no pod carries this label value (the real one is "backend").
+    app.kubernetes.io/component: api
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000

@@ -1,0 +1,54 @@
+# SCENARIO 4 - Running but never Ready (0/1)
+# The readiness probe checks a path the frontend does not serve as a health endpoint
+# and the wrong port, so the pod is never marked Ready and receives no Service traffic.
+#   kubectl apply -f troubleshooting/04-failing-readiness-probe.yaml
+#
+#   IMAGE=$(kubectl get deploy stockpilot-frontend -n stockpilot -o jsonpath='{.spec.template.spec.containers[0].image}')
+#   sed "s#STOCKPILOT_FRONTEND_IMAGE#$IMAGE#" troubleshooting/04-failing-readiness-probe.yaml | kubectl apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lab-not-ready
+  namespace: stockpilot
+  labels:
+    app: lab-not-ready
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lab-not-ready
+  template:
+    metadata:
+      labels:
+        app: lab-not-ready
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: frontend
+          image: STOCKPILOT_FRONTEND_IMAGE
+          ports:
+            - containerPort: 8080
+          env:
+            - name: BACKEND_URL
+              value: http://stockpilot-backend:8000
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              # BUG: Nginx listens on 8080 (unprivileged image), not 80.
+              port: 80
+            periodSeconds: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
