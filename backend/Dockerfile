@@ -13,8 +13,7 @@ RUN pip install -r requirements.txt
 FROM python:3.12-slim AS runtime
 
 LABEL org.opencontainers.image.title="stockpilot-backend" \
-      org.opencontainers.image.description="StockPilot inventory API (FastAPI)" \
-      org.opencontainers.image.licenses="MIT"
+      org.opencontainers.image.description="StockPilot inventory API (FastAPI)"
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

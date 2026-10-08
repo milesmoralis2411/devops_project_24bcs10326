@@ -14,8 +14,7 @@ RUN npm run build
 FROM nginxinc/nginx-unprivileged:1.30-alpine AS runtime
 
 LABEL org.opencontainers.image.title="stockpilot-frontend" \
-      org.opencontainers.image.description="StockPilot inventory dashboard (React + Nginx)" \
-      org.opencontainers.image.licenses="MIT"
+      org.opencontainers.image.description="StockPilot inventory dashboard (React + Nginx)"
 
 ENV BACKEND_URL=http://backend:8000
 COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
