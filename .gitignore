@@ -1,0 +1,44 @@
+# --- Secrets / local configuration -------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+kubeconfig*
+
+# --- Python ------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+test-results/
+*.db
+*.sqlite3
+
+# --- Node / frontend ---------------------------------------------------------
+node_modules/
+dist/
+*.log
+
+# --- Terraform ---------------------------------------------------------------
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+terraform.tfvars
+crash.log
+
+# --- Helm --------------------------------------------------------------------
+helm/**/charts/*.tgz
+
+# --- Editors / OS ------------------------------------------------------------
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,6 @@
+# Normalise line endings so shell scripts and container files work on Linux
+# runners even when the repository is edited on Windows.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
