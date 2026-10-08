@@ -7,7 +7,9 @@ ENV PIP_NO_CACHE_DIR=1 \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+# pip is only needed to build the venv; removing it means the runtime image ships no
+# package installer (and none of pip's own CVEs, e.g. CVE-2025-8869).
+RUN pip install -r requirements.txt && pip uninstall -y pip
 
 # ---- Stage 2: slim runtime image ---------------------------------------------
 FROM python:3.12-slim AS runtime
@@ -20,8 +22,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH="/opt/venv/bin:$PATH"
 
 # Dedicated unprivileged user; numeric UID so Kubernetes can verify runAsNonRoot.
+# The base image's own pip is removed too: nothing installs packages at runtime.
 RUN groupadd --system --gid 10001 app \
- && useradd --system --uid 10001 --gid app --no-create-home --shell /usr/sbin/nologin app
+ && useradd --system --uid 10001 --gid app --no-create-home --shell /usr/sbin/nologin app \
+ && python -m pip uninstall -y pip
 
 WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv

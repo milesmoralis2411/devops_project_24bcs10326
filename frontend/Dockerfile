@@ -17,6 +17,11 @@ LABEL org.opencontainers.image.title="stockpilot-frontend" \
       org.opencontainers.image.description="StockPilot inventory dashboard (React + Nginx)"
 
 ENV BACKEND_URL=http://backend:8000
+
+# Pull in Alpine security fixes published after the base image was built
+# (e.g. zlib 1.3.2-r1 for CVE-2026-85091), then drop back to the unprivileged user.
+USER root
+RUN apk upgrade --no-cache
 COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 
