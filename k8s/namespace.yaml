@@ -1,0 +1,13 @@
+# Logical isolation for the application. Pod Security Admission enforces the
+# "restricted" standard: every pod in this namespace must run as non-root, drop all
+# Linux capabilities, disallow privilege escalation and use the RuntimeDefault seccomp profile.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: stockpilot
+  labels:
+    app.kubernetes.io/part-of: stockpilot
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/audit: restricted
