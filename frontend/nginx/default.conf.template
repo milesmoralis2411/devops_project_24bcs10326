@@ -1,0 +1,49 @@
+# Rendered at container start by the nginx image entrypoint (envsubst), so the same
+# image works everywhere: BACKEND_URL is http://backend:8000 under Docker Compose and
+# http://<release>-backend:8000 in Kubernetes. Only defined env vars are substituted,
+# so nginx variables like $uri are left untouched.
+server {
+    listen 8080;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+    server_tokens off;
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # Lightweight probe target for Docker/Kubernetes (does not depend on the API).
+    location = /healthz {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok\n";
+    }
+
+    # Same-origin API proxy: the browser only ever calls /api/... on this host.
+    location /api/ {
+        proxy_pass ${BACKEND_URL};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_connect_timeout 5s;
+        proxy_read_timeout 30s;
+    }
+
+    # Fingerprinted build assets can be cached forever.
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
+    # Single-page app fallback.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
