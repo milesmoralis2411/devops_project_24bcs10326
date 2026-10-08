@@ -22,7 +22,7 @@ log = logging.getLogger("stockpilot.prestart")
 ALEMBIC_INI = Path(__file__).resolve().parent.parent / "alembic.ini"
 
 
-def wait_for_database(timeout_seconds: int = 90, interval_seconds: float = 2.0) -> None:
+def wait_for_database(timeout_seconds: int, interval_seconds: float = 2.0) -> None:
     deadline = time.monotonic() + timeout_seconds
     attempt = 0
     while True:
@@ -49,7 +49,7 @@ def run_migrations() -> None:
 
 def main() -> None:
     logging.basicConfig(level=settings.log_level, format="%(asctime)s %(levelname)s [%(name)s] %(message)s")
-    wait_for_database()
+    wait_for_database(settings.db_wait_timeout_seconds)
     run_migrations()
     if settings.seed_demo_data:
         seed_demo_data()

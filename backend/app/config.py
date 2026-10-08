@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     # from a different origin than the API, e.g. the Vite dev server).
     cors_origins: str = "http://localhost:3000,http://localhost:5173"
     seed_demo_data: bool = False
+    # How long the container waits for PostgreSQL on start-up before giving up.
+    db_wait_timeout_seconds: int = 90
     log_level: str = "INFO"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
