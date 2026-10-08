@@ -1,0 +1,54 @@
+{{- if .Values.ingress.enabled }}
+{{- $backend := include "stockpilot.backendName" . }}
+{{- $frontend := include "stockpilot.frontendName" . }}
+{{- $backendPort := .Values.backend.port }}
+# One hostname, two routes:  /api -> FastAPI backend,  / -> React frontend.
+# The Ingress is only configuration; an Ingress Controller (Traefik here) implements it.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "stockpilot.fullname" . }}
+  labels:
+    {{- include "stockpilot.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- with .Values.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    - {{- with .Values.ingress.host }}
+      host: {{ . | quote }}
+      {{- end }}
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $backend }}
+                port:
+                  number: {{ $backendPort }}
+          {{- if .Values.ingress.exposeApiDocs }}
+          {{- range list "/docs" "/openapi.json" }}
+          - path: {{ . }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $backend }}
+                port:
+                  number: {{ $backendPort }}
+          {{- end }}
+          {{- end }}
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $frontend }}
+                port:
+                  number: 80
+{{- end }}

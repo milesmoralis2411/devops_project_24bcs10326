@@ -1,0 +1,129 @@
+# Default values for the StockPilot chart.
+# Environment overlays: values-dev.yaml (local kind cluster) and values-prod.yaml (AWS EKS).
+
+nameOverride: ""
+fullnameOverride: ""
+
+# Needed only if the GHCR packages are private:
+#   kubectl create secret docker-registry ghcr-pull --docker-server=ghcr.io \
+#     --docker-username=<github-user> --docker-password=<PAT with read:packages> -n stockpilot
+imagePullSecrets: []
+#  - name: ghcr-pull
+
+backend:
+  image:
+    repository: ghcr.io/YOUR_GITHUB_USERNAME/stockpilot-backend
+    # CI deploys with --set backend.image.tag=<git commit SHA>; never "latest".
+    tag: ""
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  port: 8000
+  env:
+    ENVIRONMENT: kubernetes
+    LOG_LEVEL: INFO
+    SEED_DEMO_DATA: "true"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 160Mi
+    limits:
+      cpu: 500m
+      memory: 384Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 60
+    # Shorter than the 5 minute default so scale-down is visible during a demo.
+    scaleDownStabilizationSeconds: 60
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+frontend:
+  image:
+    repository: ghcr.io/YOUR_GITHUB_USERNAME/stockpilot-frontend
+    tag: ""
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  port: 8080
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 4
+    targetCPUUtilizationPercentage: 70
+    scaleDownStabilizationSeconds: 60
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+# In-cluster PostgreSQL (StatefulSet + PersistentVolumeClaim) for the classroom setup.
+# For production on AWS set postgres.enabled=false and externalDatabase.url to an
+# Amazon RDS connection string instead.
+postgres:
+  enabled: true
+  image:
+    repository: postgres
+    tag: 17-alpine
+    pullPolicy: IfNotPresent
+  database: stockpilot
+  username: stockpilot
+  # Leave empty to generate a random password on first install (kept on upgrades).
+  password: ""
+  storage:
+    size: 2Gi
+    # Empty = cluster default StorageClass. On EKS use "gp3" (see k8s/eks-storageclass-gp3.yaml).
+    storageClass: ""
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+
+externalDatabase:
+  # e.g. postgresql+psycopg://user:password@mydb.xxxx.ap-south-1.rds.amazonaws.com:5432/stockpilot
+  url: ""
+
+ingress:
+  enabled: true
+  # Traefik is used because the community ingress-nginx controller was retired in
+  # March 2026. Any controller works - set the class name of the one you install.
+  className: traefik
+  # Empty host = match every hostname (handy for a cloud load balancer DNS name).
+  host: ""
+  annotations: {}
+  # Also route /docs and /openapi.json to FastAPI so Swagger is reachable via the Ingress.
+  exposeApiDocs: true
+  tls: []
+  #  - secretName: stockpilot-tls
+  #    hosts: [stockpilot.example.com]
+
+monitoring:
+  # These objects are only rendered when the Prometheus Operator CRDs exist in the
+  # cluster (kube-prometheus-stack), so the chart also installs on a bare cluster.
+  serviceMonitor:
+    enabled: true
+    interval: 15s
+    labels:
+      release: kube-prometheus-stack
+  prometheusRule:
+    enabled: true
+    labels:
+      release: kube-prometheus-stack
+  grafanaDashboard:
+    enabled: true
+    # The Grafana sidecar in kube-prometheus-stack imports ConfigMaps with this label.
+    labels:
+      grafana_dashboard: "1"
+
+tests:
+  image: busybox:1.37

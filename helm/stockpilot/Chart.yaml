@@ -1,0 +1,11 @@
+apiVersion: v2
+name: stockpilot
+description: StockPilot inventory management - React frontend, FastAPI backend and PostgreSQL
+type: application
+# Chart version: bump when the chart itself changes.
+version: 1.0.0
+# Application version; the deployed image tag is the git commit SHA set by CI.
+appVersion: "1.0.0"
+keywords: [inventory, fastapi, react, postgresql, devops]
+maintainers:
+  - name: StockPilot team

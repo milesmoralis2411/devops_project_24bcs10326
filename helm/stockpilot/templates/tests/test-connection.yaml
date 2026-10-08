@@ -1,0 +1,34 @@
+# `helm test stockpilot -n stockpilot` runs this pod and reports success/failure.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "stockpilot.fullname" . }}-smoke-test
+  labels:
+    {{- include "stockpilot.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: test
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  restartPolicy: Never
+  securityContext:
+    {{- include "stockpilot.podSecurityContext" (dict "uid" 65534) | nindent 4 }}
+  containers:
+    - name: smoke-test
+      image: {{ .Values.tests.image }}
+      command: ["sh", "-c"]
+      args:
+        - |
+          set -e
+          echo "backend /ready:"; wget -qO- http://{{ include "stockpilot.backendName" . }}:{{ .Values.backend.port }}/ready; echo
+          echo "backend /api/stats:"; wget -qO- http://{{ include "stockpilot.backendName" . }}:{{ .Values.backend.port }}/api/stats; echo
+          echo "frontend /healthz:"; wget -qO- http://{{ include "stockpilot.frontendName" . }}/healthz
+          echo "frontend -> backend proxy:"; wget -qO- http://{{ include "stockpilot.frontendName" . }}/api/info; echo
+      resources:
+        requests:
+          cpu: 10m
+          memory: 16Mi
+        limits:
+          cpu: 100m
+          memory: 32Mi
+      securityContext:
+        {{- include "stockpilot.containerSecurityContext" . | nindent 8 }}

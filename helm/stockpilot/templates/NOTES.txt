@@ -1,0 +1,26 @@
+StockPilot {{ .Chart.AppVersion }} deployed as release "{{ .Release.Name }}" in namespace "{{ .Release.Namespace }}".
+
+Images:
+  backend:  {{ include "stockpilot.image" (dict "image" .Values.backend.image "ctx" .) }}
+  frontend: {{ include "stockpilot.image" (dict "image" .Values.frontend.image "ctx" .) }}
+
+Check the rollout:
+  kubectl get pods,svc,ingress,hpa -n {{ .Release.Namespace }}
+  helm test {{ .Release.Name }} -n {{ .Release.Namespace }}
+{{ if .Values.ingress.enabled }}
+Open the app through the Ingress ({{ .Values.ingress.className }}):
+{{- if .Values.ingress.host }}
+  http://{{ .Values.ingress.host }}/          (UI)
+  http://{{ .Values.ingress.host }}/docs      (Swagger)
+{{- else }}
+  kubectl get ingress {{ include "stockpilot.fullname" . }} -n {{ .Release.Namespace }}   # use the ADDRESS column
+{{- end }}
+{{- else }}
+Port-forward the UI:
+  kubectl port-forward svc/{{ include "stockpilot.frontendName" . }} 8080:80 -n {{ .Release.Namespace }}
+{{- end }}
+{{ if not (.Capabilities.APIVersions.Has "monitoring.coreos.com/v1/ServiceMonitor") }}
+Note: Prometheus Operator CRDs were not found, so the ServiceMonitor, alert rules and
+Grafana dashboard were skipped. Install kube-prometheus-stack (see monitoring/README.md)
+and run `helm upgrade` again to enable them.
+{{- end }}

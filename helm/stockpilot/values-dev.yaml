@@ -1,0 +1,28 @@
+# Local Kubernetes (kind) overlay.
+# Images are built on the laptop and side-loaded with `kind load docker-image`
+# (scripts/local-k8s-up.sh does all of this), so no registry is needed.
+#
+#   helm upgrade --install stockpilot ./helm/stockpilot -n stockpilot -f helm/stockpilot/values-dev.yaml
+
+backend:
+  image:
+    repository: stockpilot-backend
+    tag: local
+    pullPolicy: IfNotPresent
+  env:
+    ENVIRONMENT: kind-local
+    LOG_LEVEL: INFO
+    SEED_DEMO_DATA: "true"
+
+frontend:
+  image:
+    repository: stockpilot-frontend
+    tag: local
+    pullPolicy: IfNotPresent
+
+ingress:
+  enabled: true
+  className: traefik
+  # *.localtest.me is public DNS that always resolves to 127.0.0.1, so no hosts-file edit
+  # is needed. Prefer stockpilot.local? Add "127.0.0.1 stockpilot.local" to your hosts file.
+  host: stockpilot.localtest.me

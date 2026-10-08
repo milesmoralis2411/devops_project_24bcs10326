@@ -1,0 +1,42 @@
+# AWS EKS overlay (used by the GitHub Actions deploy job).
+# CI adds: --set backend.image.repository=ghcr.io/<owner>/stockpilot-backend
+#          --set backend.image.tag=<git sha>   (same for frontend)
+
+backend:
+  image:
+    repository: ghcr.io/YOUR_GITHUB_USERNAME/stockpilot-backend
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  env:
+    ENVIRONMENT: production
+    LOG_LEVEL: INFO
+    # Demo data keeps the capstone dashboard populated; set "false" for real data.
+    SEED_DEMO_DATA: "true"
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 60
+
+frontend:
+  image:
+    repository: ghcr.io/YOUR_GITHUB_USERNAME/stockpilot-frontend
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 4
+
+postgres:
+  storage:
+    size: 5Gi
+    # Created by k8s/eks-storageclass-gp3.yaml (EBS CSI driver installed by Terraform).
+    storageClass: gp3
+
+ingress:
+  enabled: true
+  className: traefik
+  # Empty = accept any Host header, so the app answers on the AWS load balancer DNS
+  # name printed by `kubectl get svc -n traefik`. Set a real domain when you have one.
+  host: ""
