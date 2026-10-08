@@ -5,7 +5,7 @@ Legend: ✅ implemented and verified in this repo · 📸 evidence *you* capture
 
 > **Status (2026-10-09):** the repository is public at
 > https://github.com/milesmoralis2411/devops_project_24bcs10326, the pipeline is green
-> ([run 37806352226](https://github.com/milesmoralis2411/devops_project_24bcs10326/actions/runs/37806352226)),
+> ([run 37837734675](https://github.com/milesmoralis2411/devops_project_24bcs10326/actions/runs/37837734675)),
 > both images are public in GHCR with SHA tags, and the AWS VPC + EKS environment was
 > provisioned with Terraform, captured (plan, apply, AWS Console, kubectl) and destroyed.
 > Evidence for every module is in **[SCREENSHOTS.md](SCREENSHOTS.md)**.
@@ -135,15 +135,51 @@ Bonus: `kubectl get hpa -n stockpilot` during `scripts/load-test.sh`.
 
 ---
 
-## Before you submit
+## GRADING.md submission checklist: status
 
-```text
-[ ] Repository pushed to GitHub (public, or instructor access granted)
-[ ] Actions run green, both images in GHCR with SHA tags
-[ ] terraform plan, AWS Console (VPC + EKS) and terraform destroy screenshots
-[ ] kubectl get pods / svc, helm list, app via Ingress screenshots
-[ ] /metrics, Prometheus targets (UP), Grafana dashboard screenshots
-[ ] pytest -v and docker compose screenshots
-[ ] AWS resources destroyed (check EC2 → Load Balancers / Volumes are empty)
-[ ] No secrets in git history:  git log -p | grep -iE "AKIA|secret_access|password=" (should only hit docs/examples)
-```
+Two items are **actions only you can take**: submitting the form, and presenting or recording.
+Everything else is done and evidenced.
+
+**Application**
+- [ ] GitHub repository URL submitted: **paste https://github.com/milesmoralis2411/devops_project_24bcs10326 in the submission form** (the repo is public)
+- [x] Application runs via `docker compose up --build`: [m4-docker-compose-up-build.png](screenshots/m4-docker-compose-up-build.png), [m1-app-docker-compose.png](screenshots/m1-app-docker-compose.png)
+- [x] At least 4 REST API endpoints implemented: 11 `/api` endpoints, [m1-swagger-docs.png](screenshots/m1-swagger-docs.png), [m1-api-health-and-crud.png](screenshots/m1-api-health-and-crud.png)
+- [x] Alembic migration file present: [`0001_create_products.py`](../backend/alembic/versions/0001_create_products.py), [`0002_create_stock_movements.py`](../backend/alembic/versions/0002_create_stock_movements.py)
+
+**Testing**
+- [x] pytest passes (screenshot): [m2-pytest-v.png](screenshots/m2-pytest-v.png), 51 passed
+- [x] At least 5 test cases present: 51 tests in [`backend/tests/`](../backend/tests/)
+
+**Docker**
+- [x] `backend/Dockerfile` builds: [m4-docker-compose-up-build.png](screenshots/m4-docker-compose-up-build.png)
+- [x] `frontend/Dockerfile` uses multi-stage build: Node 24 build → nginx-unprivileged runtime ([Dockerfile](../frontend/Dockerfile))
+- [x] Non-root user in both Dockerfiles: uid 10001 / uid 101, [m4-non-root-images.png](screenshots/m4-non-root-images.png)
+
+**CI/CD**
+- [x] GitHub Actions workflow present: [`.github/workflows/ci-cd.yml`](../.github/workflows/ci-cd.yml)
+- [x] Pipeline runs on push to main: [m5-github-actions-runs.png](screenshots/m5-github-actions-runs.png)
+- [x] pytest runs in pipeline: [m5-ci-pytest-step.png](screenshots/m5-ci-pytest-step.png)
+- [x] Images pushed to GHCR with SHA tags: [m5-ghcr-backend-sha-tags.png](screenshots/m5-ghcr-backend-sha-tags.png), [m5-ghcr-frontend-sha-tags.png](screenshots/m5-ghcr-frontend-sha-tags.png)
+
+**Security**
+- [x] Trivy scan in pipeline: [m6-ci-trivy-gate-backend.png](screenshots/m6-ci-trivy-gate-backend.png), [m6-ci-trivy-gate-frontend.png](screenshots/m6-ci-trivy-gate-frontend.png), explanation in [SECURITY.md](SECURITY.md)
+- [x] No secrets committed to Git: full-history scan clean; `.env`, `terraform.tfvars` and state files are git-ignored and were never committed
+
+**Terraform**
+- [x] terraform plan output: [m7-aws-terraform-plan.png](screenshots/m7-aws-terraform-plan.png)
+- [x] VPC + EKS provisioned (AWS Console screenshots): [VPC](screenshots/m7-aws-console-vpc.png), [subnets](screenshots/m7-aws-console-subnets.png), [EKS cluster](screenshots/m7-aws-console-eks-cluster.png), [node group](screenshots/m7-aws-console-eks-nodegroup.png)
+- [x] terraform destroy output: [m7-aws-terraform-destroy.png](screenshots/m7-aws-terraform-destroy.png)
+
+**Kubernetes + Helm**
+- [x] kubectl get pods (all Running): [m8-kubectl-get-pods.png](screenshots/m8-kubectl-get-pods.png)
+- [x] helm list: [m8-helm-list-and-test.png](screenshots/m8-helm-list-and-test.png)
+- [x] Application accessible via Ingress: [m8-app-via-ingress.png](screenshots/m8-app-via-ingress.png)
+
+**Observability**
+- [x] /metrics endpoint: [m9-metrics-endpoint.png](screenshots/m9-metrics-endpoint.png)
+- [x] Prometheus Targets page (UP): [m9-prometheus-targets-up.png](screenshots/m9-prometheus-targets-up.png)
+- [x] Grafana dashboard: [m9-grafana-dashboard.png](screenshots/m9-grafana-dashboard.png)
+
+**Documentation**
+- [x] README.md present: [README.md](../README.md)
+- [ ] Presentation completed or recording submitted: **you**, following [DEMO-SCRIPT.md](DEMO-SCRIPT.md) (live, or record with `Win + Shift + R`)

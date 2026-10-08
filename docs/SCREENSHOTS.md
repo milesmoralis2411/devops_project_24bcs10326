@@ -12,7 +12,7 @@ system:
 | Link | URL |
 |------|-----|
 | Repository | https://github.com/milesmoralis2411/devops_project_24bcs10326 |
-| Green pipeline run | https://github.com/milesmoralis2411/devops_project_24bcs10326/actions/runs/37806352226 |
+| Green pipeline run | https://github.com/milesmoralis2411/devops_project_24bcs10326/actions/runs/37837734675 |
 | Backend image (GHCR) | https://github.com/milesmoralis2411/devops_project_24bcs10326/pkgs/container/stockpilot-backend |
 | Frontend image (GHCR) | https://github.com/milesmoralis2411/devops_project_24bcs10326/pkgs/container/stockpilot-frontend |
 
