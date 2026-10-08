@@ -1,0 +1,18 @@
+{{- if and .Values.monitoring.grafanaDashboard.enabled (.Capabilities.APIVersions.Has "monitoring.coreos.com/v1/ServiceMonitor") }}
+# Picked up automatically by the Grafana dashboard sidecar of kube-prometheus-stack
+# (it watches ConfigMaps labelled grafana_dashboard=1 in all namespaces).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "stockpilot.fullname" . }}-grafana-dashboard
+  labels:
+    {{- include "stockpilot.labels" . | nindent 4 }}
+    {{- with .Values.monitoring.grafanaDashboard.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    grafana_folder: StockPilot
+data:
+  stockpilot.json: |-
+    {{- .Files.Get "files/grafana-dashboard.json" | nindent 4 }}
+{{- end }}

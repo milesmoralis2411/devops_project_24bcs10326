@@ -1,0 +1,23 @@
+# Local (kind) overlay: publish Grafana and Prometheus through the Traefik Ingress so they
+# open in the browser without fragile `kubectl port-forward` sessions.
+#   http://grafana.localtest.me      http://prometheus.localtest.me
+# (*.localtest.me always resolves to 127.0.0.1.)  Not used on EKS, where these UIs
+# should stay private (port-forward, VPN or an authenticated ingress).
+
+grafana:
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+      - grafana.localtest.me
+    path: /
+
+prometheus:
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+      - prometheus.localtest.me
+    paths:
+      - /
+    pathType: Prefix

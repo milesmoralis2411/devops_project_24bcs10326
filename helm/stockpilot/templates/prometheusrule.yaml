@@ -1,0 +1,51 @@
+{{- if and .Values.monitoring.prometheusRule.enabled (.Capabilities.APIVersions.Has "monitoring.coreos.com/v1/PrometheusRule") }}
+{{- $ns := .Release.Namespace }}
+{{- $svc := include "stockpilot.backendName" . }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "stockpilot.fullname" . }}
+  labels:
+    {{- include "stockpilot.labels" . | nindent 4 }}
+    {{- with .Values.monitoring.prometheusRule.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  groups:
+    - name: stockpilot.availability
+      rules:
+        - alert: StockPilotBackendDown
+          expr: sum(up{namespace="{{ $ns }}", service="{{ $svc }}"}) == 0 or absent(up{namespace="{{ $ns }}", service="{{ $svc }}"})
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: No StockPilot backend pod is being scraped successfully
+            description: Prometheus cannot reach /metrics on any backend pod in {{ $ns }} for 2 minutes.
+        - alert: StockPilotHighErrorRate
+          expr: |
+            sum(rate(http_requests_total{namespace="{{ $ns }}", service="{{ $svc }}", status=~"5.."}[5m]))
+              / clamp_min(sum(rate(http_requests_total{namespace="{{ $ns }}", service="{{ $svc }}"}[5m])), 0.001) > 0.05
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: More than 5% of API requests are failing
+        - alert: StockPilotSlowRequests
+          expr: |
+            histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace="{{ $ns }}", service="{{ $svc }}"}[5m]))) > 0.5
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: 95th percentile API latency is above 500 ms
+    - name: stockpilot.business
+      rules:
+        - alert: StockPilotProductsOutOfStock
+          expr: max(stockpilot_products_out_of_stock{namespace="{{ $ns }}"}) > 0
+          for: 15m
+          labels:
+            severity: info
+          annotations:
+            summary: "{{ "{{" }} $value {{ "}}" }} product(s) have been out of stock for 15 minutes"
+{{- end }}

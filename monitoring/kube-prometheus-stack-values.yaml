@@ -1,0 +1,77 @@
+# Prometheus + Grafana (+ Alertmanager, kube-state-metrics, node-exporter) via the
+# kube-prometheus-stack Helm chart:
+#
+#   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+#   helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+#     --version 92.1.1 -n monitoring --create-namespace -f monitoring/kube-prometheus-stack-values.yaml
+
+prometheus:
+  prometheusSpec:
+    # Discover ServiceMonitors / PodMonitors / PrometheusRules from every Helm release
+    # and namespace, not only the ones labelled for this chart. This is what lets the
+    # StockPilot chart's ServiceMonitor be picked up.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    serviceMonitorNamespaceSelector: {}
+    ruleNamespaceSelector: {}
+    scrapeInterval: 15s
+    evaluationInterval: 15s
+    retention: 3d
+    resources:
+      requests:
+        cpu: 100m
+        memory: 400Mi
+      limits:
+        memory: 1500Mi
+
+grafana:
+  enabled: true
+  adminUser: admin
+  # Override at install time: --set grafana.adminPassword='<something-strong>'
+  # (scripts/bootstrap-cluster.sh generates one and prints how to read it back).
+  defaultDashboardsTimezone: browser
+  sidecar:
+    dashboards:
+      enabled: true
+      # ConfigMaps labelled grafana_dashboard=1 in ANY namespace become dashboards;
+      # the StockPilot chart ships one (helm/stockpilot/files/grafana-dashboard.json).
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+      folderAnnotation: grafana_folder
+      provider:
+        foldersFromFilesStructure: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        memory: 128Mi
+
+# Managed control planes (EKS) and kind do not expose these components to Prometheus;
+# disabling them avoids permanently DOWN targets on the Targets page.
+kubeEtcd:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeProxy:
+  enabled: false
+
+prometheus-node-exporter:
+  # Docker Desktop / kind nodes are containers whose root mount is not "shared";
+  # mounting the host root FS would make node-exporter crash-loop there.
+  hostRootFsMount:
+    enabled: false

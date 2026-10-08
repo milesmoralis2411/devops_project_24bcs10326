@@ -1,0 +1,34 @@
+# Traefik ingress controller (implements the StockPilot Ingress resource).
+#   helm repo add traefik https://traefik.github.io/charts
+#   helm upgrade --install traefik traefik/traefik --version 41.7.0 -n traefik --create-namespace \
+#     -f monitoring/traefik-values.yaml [--set service.type=NodePort --set ports.web.nodePort=30080   # kind]
+#
+# On EKS the default Service type LoadBalancer gives an AWS load balancer whose DNS name
+# is the public entry point (kubectl get svc traefik -n traefik).
+
+ingressClass:
+  enabled: true
+  isDefaultClass: true
+  name: traefik
+
+providers:
+  kubernetesIngress:
+    enabled: true
+    publishedService:
+      enabled: true
+
+service:
+  type: LoadBalancer
+
+# Expose Traefik's own metrics to Prometheus as well.
+metrics:
+  prometheus:
+    serviceMonitor:
+      enabled: false
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    memory: 256Mi
