@@ -18,6 +18,11 @@ module "eks" {
 
   cloudwatch_log_group_retention_in_days = 7
 
+  # Workloads get AWS permissions through EKS Pod Identity (below), so no IAM OIDC
+  # provider is needed. This also works in AWS accounts whose organization blocks
+  # iam:CreateOpenIDConnectProvider, which is the case for the Free-plan account used here.
+  enable_irsa = false
+
   addons = {
     coredns = {
       most_recent = true
@@ -35,8 +40,11 @@ module "eks" {
     }
     # Lets PersistentVolumeClaims (the PostgreSQL StatefulSet) get EBS volumes.
     aws-ebs-csi-driver = {
-      most_recent              = true
-      service_account_role_arn = aws_iam_role.ebs_csi.arn
+      most_recent = true
+      pod_identity_association = [{
+        role_arn        = aws_iam_role.ebs_csi.arn
+        service_account = "ebs-csi-controller-sa"
+      }]
     }
   }
 
@@ -59,31 +67,28 @@ module "eks" {
 }
 
 # ---------------------------------------------------------------------------
-# IAM role for the EBS CSI driver (IRSA: IAM Roles for Service Accounts).
-# Only the ebs-csi-controller-sa service account in kube-system can assume it.
+# IAM role for the EBS CSI driver, delivered with EKS Pod Identity: the
+# eks-pod-identity-agent add-on hands these credentials only to the
+# ebs-csi-controller-sa service account named in the add-on above.
 # ---------------------------------------------------------------------------
 data "aws_iam_policy_document" "ebs_csi_assume" {
   statement {
-    actions = ["sts:AssumeRoleWithWebIdentity"]
+    actions = ["sts:AssumeRole", "sts:TagSession"]
 
     principals {
-      type        = "Federated"
-      identifiers = [module.eks.oidc_provider_arn]
+      type        = "Service"
+      identifiers = ["pods.eks.amazonaws.com"]
     }
 
     condition {
       test     = "StringEquals"
-      variable = "${module.eks.oidc_provider}:sub"
-      values   = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
-    }
-
-    condition {
-      test     = "StringEquals"
-      variable = "${module.eks.oidc_provider}:aud"
-      values   = ["sts.amazonaws.com"]
+      variable = "aws:SourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
     }
   }
 }
+
+data "aws_caller_identity" "current" {}
 
 resource "aws_iam_role" "ebs_csi" {
   name               = "${var.cluster_name}-ebs-csi"
