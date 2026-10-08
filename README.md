@@ -272,7 +272,10 @@ The UI sidebar and `GET /api/info` show that SHA, which makes the
 
 The deploy job authenticates to AWS with **GitHub OIDC** (no stored AWS keys) and is
 skipped until the repository variable `AWS_DEPLOY_ROLE_ARN` exists. See
-[docs/AWS-EKS-GUIDE.md](docs/AWS-EKS-GUIDE.md).
+[docs/AWS-EKS-GUIDE.md](docs/AWS-EKS-GUIDE.md). The Free-plan AWS account used for this
+submission blocks IAM OIDC providers, so the job stays skipped here. Releases are promoted
+by deploying the CI-built, SHA-tagged image with `helm upgrade` (see
+[docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md)).
 
 ## 9. Security (DevSecOps)
 
@@ -349,9 +352,14 @@ and NAT gateway, an **EKS 1.36** cluster with a **managed node group** (2× t3.m
 Linux 2023), EKS add-ons (VPC CNI, CoreDNS, kube-proxy, Pod Identity agent, **EBS CSI driver**
 with an EKS Pod Identity role), and optionally the GitHub OIDC deploy role.
 
-The submission environment was built in **`ap-southeast-2` (Sydney)**. The AWS Free-plan
-account used is limited to that region by an AWS Organizations service control policy. The
-Terraform is identical; only `aws_region` in `terraform.tfvars` differs.
+The submission environment was built in **`ap-southeast-2` (Sydney)** with the same code.
+The AWS Free-plan account used is restricted by AWS Organizations service control policies,
+handled with three settings in the git-ignored `terraform.tfvars`:
+- `aws_region = "ap-southeast-2"`: the only allowed region;
+- `node_instance_types = ["m7i-flex.large"]`: only free-tier-eligible instance types are allowed;
+- `github_repository = ""`: IAM OIDC providers are blocked.
+
+The story is in [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md#m7---terraform-real-aws).
 
 ```bash
 cd terraform && cp terraform.tfvars.example terraform.tfvars
@@ -427,6 +435,6 @@ no `terraform.tfvars.example`, and missing EBS storage support on EKS.
 
 ## 16. Grading checklist and demo script
 
-* [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md): 37 screenshots of the running system, one section per rubric module (M1–M10).
+* [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md): 45 screenshots of the running system, including the real AWS VPC + EKS environment, one section per rubric module (M1–M10).
 * [docs/SUBMISSION-CHECKLIST.md](docs/SUBMISSION-CHECKLIST.md): every rubric line → file/evidence → command to capture the screenshot.
 * [docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md): a 12–15 minute live presentation flow, including the *commit → pipeline → deployment update* moment.

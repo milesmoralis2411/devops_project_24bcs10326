@@ -5,9 +5,10 @@ registry → Terraform → Kubernetes → Helm → Ingress → autoscaling → m
 
 ## Prepare (before the session)
 
-* EKS running ([AWS guide](AWS-EKS-GUIDE.md) steps 1–6) **or** the local cluster: `scripts/local-k8s-up.sh`.
+* Start **Docker Desktop**. The local kind cluster comes back by itself; check that
+  http://stockpilot.localtest.me loads. (Fresh machine: `scripts/local-k8s-up.sh`.)
 * Browser tabs: the app (via Ingress) · GitHub repo → *Actions* · GitHub → *Packages* ·
-  Grafana dashboard · Prometheus targets · AWS Console (VPC, EKS).
+  Grafana dashboard · Prometheus targets · [SCREENSHOTS.md](SCREENSHOTS.md) (AWS VPC/EKS evidence).
 * Terminal in the repo root with a large font. Have `kubectl get hpa -n stockpilot -w` ready in a second terminal.
 * Run `scripts/load-test.sh` once ~10 minutes before, so Grafana has history.
 
@@ -29,23 +30,37 @@ registry → Terraform → Kubernetes → Helm → Ingress → autoscaling → m
 Make a visible change, e.g. in `frontend/src/App.jsx` change the dashboard subtitle text:
 
 ```bash
-git checkout -b demo-change            # optional: show a PR
+cd ~/Desktop/devops_project            # Git Bash
 # edit 'Live stock levels, reorder alerts and recent movements.' -> '... - deployed live in class!'
 git commit -am "feat(ui): update dashboard subtitle for the live demo"
-git push origin HEAD:main             # or open a PR and merge it
+git push
 ```
 
-While the pipeline runs, walk through it in the *Actions* tab:
+While the pipeline runs (~4 min), walk through it in the *Actions* tab:
 1. **backend-test**: ruff, 51 pytest tests on SQLite *and* PostgreSQL, migration round-trip. *"If a test fails, nothing below runs, so no broken image is ever built."*
 2. **frontend-build** and **iac-validate** (Terraform test with mocked AWS, Helm lint) run in parallel.
 3. **build-scan-push**: Docker build → **Trivy** (open the log: table, then the HIGH/CRITICAL gate) → push to **GHCR** tagged with the commit SHA.
-4. **deploy**: OIDC login to AWS (no stored keys) → `helm upgrade --install --set image.tag=<sha>` → `helm test`.
+4. **deploy** shows *skipped*. Explain: *"The deploy job targets EKS with keyless OIDC, but my AWS
+   Free-plan account blocks OIDC providers, and GitHub can't reach a cluster on my laptop. So I
+   promote the exact image CI built, by its SHA, with Helm."*
 
-Meanwhile in the terminal: `kubectl get pods -n stockpilot -w`. New pods appear and old ones
-terminate, with zero downtime (`maxUnavailable: 0`).
+When the run is green, deploy that image to the cluster:
+
+```bash
+SHA=$(git rev-parse HEAD)
+helm upgrade stockpilot ./helm/stockpilot -n stockpilot -f helm/stockpilot/values-dev.yaml \
+  --set backend.image.repository=ghcr.io/milesmoralis2411/stockpilot-backend --set backend.image.tag=$SHA \
+  --set frontend.image.repository=ghcr.io/milesmoralis2411/stockpilot-frontend --set frontend.image.tag=$SHA --wait
+kubectl get pods -n stockpilot              # new pods replaced the old ones, zero downtime (maxUnavailable: 0)
+helm history stockpilot -n stockpilot | tail -3
+```
 
 Refresh the app: **new subtitle, and the sidebar build SHA now matches the commit you just pushed.**
 GitHub *Packages*: the new SHA tag is there.
+
+> Recording instead of presenting live? Windows 11 **Snipping Tool** (`Win + Shift + R`) records
+> the whole screen with microphone narration. Upload the `.mp4` to Google Drive or as an
+> unlisted YouTube video and submit the link. Don't commit the video to the repo.
 
 ### 4. Infrastructure as Code (2 min)
 * `terraform/main.tf` + `eks.tf`: VPC, 2 public/2 private subnets, NAT, EKS 1.36, managed node group, EBS CSI.
