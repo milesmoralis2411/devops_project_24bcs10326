@@ -40,7 +40,8 @@ else
 fi
 
 echo "==> terraform destroy"
-terraform -chdir="$ROOT/terraform" destroy "$@"
+# cd instead of -chdir: on Windows (Git Bash) a native terraform.exe cannot resolve /c/... paths.
+(cd "$ROOT/terraform" && terraform destroy "$@")
 
 echo "==> Leftover check - anything Kubernetes tagged for this cluster (should print nothing):"
 aws resourcegroupstaggingapi get-resources --region "$REGION" \
