@@ -83,20 +83,42 @@ Local environment: Docker Compose for M1/M4, and a 3-node **kind** Kubernetes cl
 
 Written explanation: [SECURITY.md](SECURITY.md#trivy-container-scanning-what-it-does-and-what-the-result-means).
 
-## M7 - Terraform
+## M7 - Terraform (real AWS)
 
-> **Still to do with your AWS account.** No AWS credentials were available when these were
-> captured, so the images below prove the code is valid and plans cleanly **against mocked
-> AWS providers**. They are not the real `terraform plan`. Add the real screenshots with
-> [AWS-EKS-GUIDE.md](AWS-EKS-GUIDE.md):
-> `terraform plan` · AWS Console VPC + EKS in ap-south-1 · `terraform destroy` (`scripts/eks-teardown.sh`).
+Provisioned on 2026-10-09 in AWS account `778977181553`, region **ap-southeast-2 (Sydney)**,
+then destroyed. Console screenshots taken in the AWS Console during that window.
 
 | Evidence | Image |
 |----------|-------|
 | `terraform fmt -check`, `init`, `validate`: valid | [m7-terraform-fmt-init-validate.png](screenshots/m7-terraform-fmt-init-validate.png) |
-| `terraform test`: plans 59 / 64 resources, 3 tests passed (mocked AWS) | [m7-terraform-test-mocked-plan.png](screenshots/m7-terraform-test-mocked-plan.png) |
-| Planned VPC, 2 public + 2 private subnets, NAT, EKS cluster, node group (mocked AWS) | [m7-terraform-planned-resources-mocked.png](screenshots/m7-terraform-planned-resources-mocked.png) |
+| Real `terraform plan`: **Plan: 64 to add, 0 to change, 0 to destroy**, no errors | [m7-aws-terraform-plan.png](screenshots/m7-aws-terraform-plan.png) |
+| `terraform apply` complete: outputs (VPC, subnets, EKS endpoint), **58 managed resources** | [m7-aws-terraform-apply.png](screenshots/m7-aws-terraform-apply.png) |
+| **AWS Console: VPC** `stockpilot-vpc` (10.20.0.0/16), Available | [m7-aws-console-vpc.png](screenshots/m7-aws-console-vpc.png) |
+| **AWS Console: subnets**: 2 public + 2 private across ap-southeast-2a/2b | [m7-aws-console-subnets.png](screenshots/m7-aws-console-subnets.png) |
+| Route tables: public subnets → Internet Gateway, private subnets → NAT gateway | [m7-aws-vpc-subnets-routes.png](screenshots/m7-aws-vpc-subnets-routes.png) |
+| **AWS Console: EKS cluster** `stockpilot-eks`: Active, Kubernetes 1.36 | [m7-aws-console-eks-cluster.png](screenshots/m7-aws-console-eks-cluster.png) |
+| **AWS Console: managed node group**: Active, 2 nodes | [m7-aws-console-eks-nodegroup.png](screenshots/m7-aws-console-eks-nodegroup.png) |
+| `kubectl get nodes`: 2 worker nodes **Ready**; system pods running | [m7-aws-eks-cluster-nodes.png](screenshots/m7-aws-eks-cluster-nodes.png) |
+| `terraform destroy` via `scripts/eks-teardown.sh`: **Destroy complete! Resources: 58 destroyed**; the sweep shows nothing left (the 2 listed instances are `terminated`) | [m7-aws-terraform-destroy.png](screenshots/m7-aws-terraform-destroy.png) |
+| Offline `terraform test` (mocked AWS, also runs in CI): 3 passed | [m7-terraform-test-mocked-plan.png](screenshots/m7-terraform-test-mocked-plan.png) |
 | `terraform.tfvars.example` (no credentials committed) | [../terraform/terraform.tfvars.example](../terraform/terraform.tfvars.example) |
+
+![eks](screenshots/m7-aws-console-eks-cluster.png)
+
+**What happened on the way (useful for the presentation).** The AWS Free-plan account has
+organization guardrails (service control policies). Each one surfaced as a clear error and was
+handled in code or configuration:
+
+1. **Region:** only Sydney is allowed. `aws_region = "ap-southeast-2"` in `terraform.tfvars`.
+2. **Instance types:** only free-tier-eligible ones. CloudTrail showed
+   "*The specified instance type is not eligible for Free Tier*" for `t3.medium`, so the node
+   group uses `m7i-flex.large`, which is eligible and has 8 GiB.
+3. **IAM OIDC providers are forbidden.** The EBS CSI driver was moved from IRSA to **EKS Pod
+   Identity** (`terraform/eks.tf`, `enable_irsa = false`). The optional GitHub keyless-deploy
+   role was disabled (`github_repository = ""`).
+
+The first plan (64 resources) included the GitHub OIDC role. The final environment had
+58 managed resources.
 
 ## M8 - Kubernetes + Helm (local kind cluster)
 

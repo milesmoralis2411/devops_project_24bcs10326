@@ -3,13 +3,13 @@
 Legend: ✅ implemented and verified in this repo · 📸 evidence *you* capture (command given) ·
 👤 needs your own GitHub/AWS account.
 
-> **Status (2026-10-08):** the repository is public at
+> **Status (2026-10-09):** the repository is public at
 > https://github.com/milesmoralis2411/devops_project_24bcs10326, the pipeline is green
 > ([run 37806352226](https://github.com/milesmoralis2411/devops_project_24bcs10326/actions/runs/37806352226)),
-> both images are public in GHCR with SHA tags, and screenshots for M1–M6, M8 and M9 are in
-> **[SCREENSHOTS.md](SCREENSHOTS.md)**.
-> **Still open:** M7's real AWS screenshots (`terraform plan`, AWS Console, `terraform destroy`)
-> and the M10 live demo. Optionally redo the M8/M9 screenshots on EKS.
+> both images are public in GHCR with SHA tags, and the AWS VPC + EKS environment was
+> provisioned with Terraform, captured (plan, apply, AWS Console, kubectl) and destroyed.
+> Evidence for every module is in **[SCREENSHOTS.md](SCREENSHOTS.md)**.
+> **Still open:** only the M10 live demo.
 
 Before you start: `docker compose up --build` for M1/M4, `scripts/local-k8s-up.sh` for the
 local Kubernetes evidence (M8/M9), and the [AWS guide](AWS-EKS-GUIDE.md) for M7 and the EKS
@@ -85,19 +85,19 @@ versions of M8/M9.
 
 📸 👤 Expand the *Trivy security gate* step in the Actions log.
 
-## M7: Terraform (15) 👤 needs AWS
+## M7: Terraform (15)
 
 | Criterion | Evidence |
 |-----------|----------|
 | Valid HCL in `terraform/` (2) | ✅ `terraform fmt -check` + `terraform validate` pass (also in CI) |
 | `terraform init` OK (1) | ✅ |
-| `terraform plan` non-empty, no errors (2) | ✅ offline proof: `terraform test` plans 59/64 resources with mocked AWS · 📸 real `terraform plan` |
-| VPC with ≥ 2 public subnets (3) | ✅ 2 public + 2 private subnets in 2 AZs |
-| EKS with a worker node group (4) | ✅ managed node group `default`, 2 × t3.medium |
-| `terraform destroy` clean (2) | ✅ `scripts/eks-teardown.sh` removes Kubernetes-created AWS resources first |
+| `terraform plan` non-empty, no errors (2) | ✅ real plan: `Plan: 64 to add` against AWS (ap-southeast-2) |
+| VPC with ≥ 2 public subnets (3) | ✅ provisioned: `stockpilot-vpc`, 2 public + 2 private subnets in 2 AZs (Console screenshots) |
+| EKS with a worker node group (4) | ✅ provisioned: `stockpilot-eks` (1.36, Active), managed node group with 2 × m7i-flex.large Ready |
+| `terraform destroy` clean (2) | ✅ `scripts/eks-teardown.sh` → `Destroy complete!`, no leftovers |
 | `terraform.tfvars.example`, no credentials (1) | ✅ present; `terraform.tfvars`/state git-ignored |
 
-📸 `terraform plan` output · AWS Console: VPC + subnets and the EKS cluster/node group in ap-south-1 · `Destroy complete!`.
+📸 Done: `docs/screenshots/m7-aws-*.png` (plan, apply, Console VPC/subnets/EKS/node group, kubectl, destroy).
 
 ## M8: Kubernetes + Helm (15)
 
