@@ -3,6 +3,14 @@
 Legend: ✅ implemented and verified in this repo · 📸 evidence *you* capture (command given) ·
 👤 needs your own GitHub/AWS account.
 
+> **Status (2026-10-08):** the repository is public at
+> https://github.com/milesmoralis2411/devops_project_24bcs10326, the pipeline is green
+> ([run 37806352226](https://github.com/milesmoralis2411/devops_project_24bcs10326/actions/runs/37806352226)),
+> both images are public in GHCR with SHA tags, and screenshots for M1–M6, M8 and M9 are in
+> **[SCREENSHOTS.md](SCREENSHOTS.md)**.
+> **Still open:** M7's real AWS screenshots (`terraform plan`, AWS Console, `terraform destroy`)
+> and the M10 live demo. Optionally redo the M8/M9 screenshots on EKS.
+
 Before you start: `docker compose up --build` for M1/M4, `scripts/local-k8s-up.sh` for the
 local Kubernetes evidence (M8/M9), and the [AWS guide](AWS-EKS-GUIDE.md) for M7 and the EKS
 versions of M8/M9.

@@ -1,5 +1,8 @@
 # StockPilot: inventory management, from laptop to monitored Kubernetes
 
+[![CI/CD](https://github.com/milesmoralis2411/devops_project_24bcs10326/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/milesmoralis2411/devops_project_24bcs10326/actions/workflows/ci-cd.yml)
+· **Evidence for every grading module: [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md)**
+
 **StockPilot** is a small SaaS-style inventory management system for warehouses and shops.
 Staff keep a catalogue of products (SKU, supplier, bin location, price, reorder level),
 record every stock movement (receipts, sales, customer returns, damage write-offs and
@@ -420,5 +423,6 @@ no `terraform.tfvars.example`, and missing EBS storage support on EKS.
 
 ## 16. Grading checklist and demo script
 
+* [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md): 37 screenshots of the running system, one section per rubric module (M1–M10).
 * [docs/SUBMISSION-CHECKLIST.md](docs/SUBMISSION-CHECKLIST.md): every rubric line → file/evidence → command to capture the screenshot.
 * [docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md): a 12–15 minute live presentation flow, including the *commit → pipeline → deployment update* moment.
