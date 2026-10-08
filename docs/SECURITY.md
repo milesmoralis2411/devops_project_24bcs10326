@@ -10,10 +10,34 @@
 > databases. The pipeline prints a full report, then fails the build if any **HIGH or
 > CRITICAL** vulnerability **with an available fix** is found, so a known-exploitable,
 > patchable image can never reach GHCR or the cluster.
-> Both images currently scan **clean (0 fixable HIGH/CRITICAL)**: no dependency has a
-> known serious vulnerability that we could fix by upgrading.
+> The first pipeline run passed the gate (0 HIGH/CRITICAL), but the informational report
+> showed 13 lower-severity findings, which we then remediated. Both images now scan with
+> **0 fixable vulnerabilities of any severity**.
 
-**A finding we actually hit and fixed.** While choosing the backend base image, Trivy
+### CVEs we found and fixed
+
+**1. CVE-2025-8869 (MEDIUM) in `pip` 25.0.1, backend image.** The first GitHub Actions run
+listed six pip CVEs (CVE-2025-8869, CVE-2026-13346, CVE-2026-3219, CVE-2026-6357,
+CVE-2026-8643 MEDIUM; CVE-2026-1703 LOW), each twice (system pip + the virtualenv's copy).
+CVE-2025-8869: when pip extracts a malicious source distribution it does not check symbolic
+links, so a crafted package can write files outside the build directory. It only matters
+when packages are installed, and the running API never installs packages. So instead of
+upgrading pip (newer pip releases vendor libraries with HIGH CVEs, see below) we **removed
+pip from the runtime image altogether** (`pip uninstall -y pip` in both stages,
+`backend/Dockerfile`). Less software means a smaller attack surface and nothing to patch.
+
+**2. CVE-2026-85091 (MEDIUM) in `zlib` 1.3.2-r0, frontend image.** This is a heap buffer
+overflow in zlib's decompression code. Alpine had already published the fixed package
+`1.3.2-r1`, but the `nginx-unprivileged:1.30-alpine` base image predates it. The frontend
+Dockerfile now runs `apk upgrade --no-cache` in the runtime stage, so OS security fixes
+released after the base image was built are applied at build time.
+
+| Image | First CI run (fixable, all severities) | After remediation |
+|-------|----------------------------------------|-------------------|
+| stockpilot-backend | 12 (10 MEDIUM, 2 LOW), all pip | **0** |
+| stockpilot-frontend | 1 MEDIUM (zlib) | **0** |
+
+**3. Avoided before the first commit.** While choosing the backend base image, Trivy
 reported 4 fixable HIGH vulnerabilities in `python:3.13-slim`, all in Python packages
 bundled into that image, for example:
 

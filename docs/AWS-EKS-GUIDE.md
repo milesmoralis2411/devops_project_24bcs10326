@@ -73,10 +73,12 @@ skipped** because the repository is not configured for AWS yet.
    These are *variables*, not secrets: an IAM role ARN is not a credential. Only
    workflows on the `main` branch of this exact repository can assume the role.
 
-2. **Image visibility.** GHCR packages are private by default. Either make both packages
-   public (*your profile → Packages → stockpilot-backend → Package settings → Change
-   visibility → Public*, same for `stockpilot-frontend`), or keep them private and give the
-   cluster a pull secret:
+2. **Image visibility.** Images pushed by a workflow in a *public* repository are linked to
+   it and come out public. That was the case here: `ghcr.io/milesmoralis2411/stockpilot-*`
+   pull anonymously, so EKS needs no credentials. If yours are private (private repo, or a
+   changed default), either make both packages public (*your profile → Packages →
+   stockpilot-backend → Package settings → Change visibility → Public*, same for
+   `stockpilot-frontend`), or keep them private and give the cluster a pull secret:
 
    ```bash
    kubectl create namespace stockpilot --dry-run=client -o yaml | kubectl apply -f -

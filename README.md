@@ -275,10 +275,14 @@ skipped until the repository variable `AWS_DEPLOY_ROLE_ARN` exists. See
 
 Trivy scans **both images** in CI. It always prints a full report, then a second gating
 step uses `--severity HIGH,CRITICAL --ignore-unfixed --exit-code 1`, so a vulnerability with
-an available fix stops the pipeline before anything is pushed. Locally both images scan
-clean (0 fixable HIGH/CRITICAL). The base images were chosen for this:
-`python:3.13-slim` currently carries 4 fixable HIGH CVEs in bundled Python packages, while
-`python:3.12-slim` has none.
+an available fix stops the pipeline before anything is pushed.
+
+The first CI run passed the gate, and its full report showed 13 MEDIUM/LOW findings: six
+CVEs in `pip` (e.g. **CVE-2025-8869**) and one in Alpine's `zlib` (**CVE-2026-85091**).
+They were remediated by removing pip from the runtime image and applying Alpine security
+updates at build time. Both images now have **0 fixable vulnerabilities of any severity**.
+The base image was chosen the same way: `python:3.13-slim` carries 4 fixable HIGH CVEs,
+`python:3.12-slim` none.
 
 Other controls: SHA-pinned GitHub Actions (see the March 2026 `trivy-action` tag hijack) ·
 least-privilege `GITHUB_TOKEN` permissions per job · OIDC instead of AWS keys · non-root
