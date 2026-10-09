@@ -46,7 +46,7 @@ terraform init                 # download providers + modules
 terraform fmt -recursive       # canonical formatting
 terraform validate             # static checks
 terraform test                 # offline plan against mocked AWS (3 tests)
-terraform plan -out tfplan     # "Plan: 63 to add" (58 without github_repository) - screenshot this
+terraform plan -out tfplan     # "Plan: 63 to add" (58 without github_repository)
 terraform apply tfplan         # 15-20 minutes (EKS control plane + nodes)
 
 $(terraform output -raw configure_kubectl)   # aws eks update-kubeconfig ...
@@ -59,8 +59,8 @@ deploys, opening the app).
 ## Cost and tear-down
 
 Roughly **US$0.30 per hour** while running in ap-south-1: EKS control plane $0.10/h,
-2 × t3.medium, one NAT gateway, one load balancer, small EBS volumes. Destroy it as soon as
-you have your screenshots:
+2 × t3.medium, one NAT gateway, one load balancer, small EBS volumes. Destroy it when
+finished:
 
 ```bash
 scripts/eks-teardown.sh        # removes the load balancer + volumes Kubernetes created, then terraform destroy
@@ -79,9 +79,9 @@ then lists anything still tagged for the cluster (the list should be empty).
   New clusters also have no default StorageClass, hence `k8s/eks-storageclass-gp3.yaml`.
   Its AWS permissions come through **EKS Pod Identity**, not IRSA, so no IAM OIDC provider
   is needed (`enable_irsa = false`). Some organizations, including the Free-plan account used
-  for the submission, block `iam:CreateOpenIDConnectProvider`.
+  for this project's AWS deployment, block `iam:CreateOpenIDConnectProvider`.
 * **Free-plan accounts** only allow free-tier-eligible instance types. `t3.medium` is not one,
-  so the submission environment used `node_instance_types = ["m7i-flex.large"]`
+  so the deployed environment used `node_instance_types = ["m7i-flex.large"]`
   (2 vCPU / 8 GiB, eligible). List the eligible types with
   `aws ec2 describe-instance-types --filters Name=free-tier-eligible,Values=true`.
 * **Single NAT gateway** keeps the lab cheap; production would use one per AZ.

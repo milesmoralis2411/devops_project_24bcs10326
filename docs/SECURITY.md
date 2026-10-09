@@ -2,7 +2,7 @@
 
 ## Trivy container scanning: what it does and what the result means
 
-> **Written explanation (for the submission form):**
+> **Summary:**
 > Trivy scans the two images built by the pipeline (`stockpilot-backend` and
 > `stockpilot-frontend`). It checks the operating-system packages (Debian 13 in the
 > Python image, Alpine 3.24 in the Nginx image) and the application libraries (the

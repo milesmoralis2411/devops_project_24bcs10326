@@ -1,13 +1,10 @@
 # Submission evidence (screenshots)
 
-Every image in [`screenshots/`](screenshots/) was produced on 2026-10-08 from the real
-system:
+Evidence captured from the running system on 8–9 October 2026:
 
-* **Terminal images** are the verbatim output of the command shown on their `$` line,
-  rendered as a terminal window.
-* **Browser images** are headless-Chrome captures of the live pages, framed with the URL
-  that was visited.
-* **CI images** are the step output downloaded from this repository's GitHub Actions logs.
+* **Terminal images** show the verbatim output of the command on their `$` line.
+* **Browser images** show the live pages, with the URL that was open.
+* **CI images** show step output from this repository's GitHub Actions logs.
 
 | Link | URL |
 |------|-----|
@@ -105,9 +102,8 @@ then destroyed. Console screenshots taken in the AWS Console during that window.
 
 ![eks](screenshots/m7-aws-console-eks-cluster.png)
 
-**What happened on the way (useful for the presentation).** The AWS Free-plan account has
-organization guardrails (service control policies). Each one surfaced as a clear error and was
-handled in code or configuration:
+**Notes on the AWS account.** The AWS Free-plan account has organization guardrails (service
+control policies). Each one surfaced as a clear error and was handled in code or configuration:
 
 1. **Region:** only Sydney is allowed. `aws_region = "ap-southeast-2"` in `terraform.tfvars`.
 2. **Instance types:** only free-tier-eligible ones. CloudTrail showed
@@ -148,5 +144,5 @@ The first plan (64 resources) included the GitHub OIDC role. The final environme
 ## M10 - Documentation and presentation
 
 * `README.md` in the repository root explains the application, architecture and every module.
-* The live demo (*commit → pipeline → deployment update*) is yours to present, see [DEMO-SCRIPT.md](DEMO-SCRIPT.md).
-  The UI sidebar shows the deployed commit SHA, which makes the update visible.
+* Release flow (*commit → pipeline → deployment update*): README §8. The UI sidebar and
+  `GET /api/info` show the deployed commit SHA, which makes each update visible.

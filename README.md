@@ -38,7 +38,7 @@ Developer → Git/GitHub → GitHub Actions (pytest · build · Trivy · GHCR) �
 13. [Autoscaling demo](#13-autoscaling-demo)
 14. [Troubleshooting lab](#14-troubleshooting-lab)
 15. [Design decisions](#15-design-decisions)
-16. [Grading checklist and demo script](#16-grading-checklist-and-demo-script)
+16. [Grading evidence](#16-grading-evidence)
 
 ---
 
@@ -112,7 +112,7 @@ flowchart LR
 ├── monitoring/               kube-prometheus-stack + Traefik values, monitoring guide
 ├── scripts/                  local-k8s-up, bootstrap-cluster, smoke-test, load-test, eks-teardown
 ├── troubleshooting/          4 broken manifests + runbook
-└── docs/                     AWS guide, security notes, grading checklist, demo script, images
+└── docs/                     AWS guide, security notes, grading evidence, screenshots
 ```
 
 ## 4. Run it locally with Docker Compose
@@ -268,14 +268,19 @@ iac-validate ─┘   terraform fmt/validate/test · helm lint/template
 
 Because the image tag is the commit SHA, every running pod traces back to an exact commit.
 The UI sidebar and `GET /api/info` show that SHA, which makes the
-*commit → pipeline → new version live* demo visible in the browser.
+*commit → pipeline → new version live* flow visible in the browser.
 
 The deploy job authenticates to AWS with **GitHub OIDC** (no stored AWS keys) and is
 skipped until the repository variable `AWS_DEPLOY_ROLE_ARN` exists. See
 [docs/AWS-EKS-GUIDE.md](docs/AWS-EKS-GUIDE.md). The Free-plan AWS account used for this
-submission blocks IAM OIDC providers, so the job stays skipped here. Releases are promoted
-by deploying the CI-built, SHA-tagged image with `helm upgrade` (see
-[docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md)).
+project blocks IAM OIDC providers, so the job stays skipped. Releases are instead promoted
+to the cluster by deploying the exact CI-built, SHA-tagged images:
+
+```bash
+SHA=$(git rev-parse HEAD)          # a commit the pipeline has built, scanned and pushed
+helm upgrade stockpilot ./helm/stockpilot -n stockpilot -f helm/stockpilot/values-dev.yaml   --set backend.image.repository=ghcr.io/milesmoralis2411/stockpilot-backend --set backend.image.tag=$SHA   --set frontend.image.repository=ghcr.io/milesmoralis2411/stockpilot-frontend --set frontend.image.tag=$SHA --wait
+kubectl get pods -n stockpilot     # rolling update, zero downtime (maxUnavailable: 0)
+```
 
 ## 9. Security (DevSecOps)
 
@@ -352,7 +357,7 @@ and NAT gateway, an **EKS 1.36** cluster with a **managed node group** (2× t3.m
 Linux 2023), EKS add-ons (VPC CNI, CoreDNS, kube-proxy, Pod Identity agent, **EBS CSI driver**
 with an EKS Pod Identity role), and optionally the GitHub OIDC deploy role.
 
-The submission environment was built in **`ap-southeast-2` (Sydney)** with the same code.
+The deployed environment was built in **`ap-southeast-2` (Sydney)** with the same code.
 The AWS Free-plan account used is restricted by AWS Organizations service control policies,
 handled with three settings in the git-ignored `terraform.tfvars`:
 - `aws_region = "ap-southeast-2"`: the only allowed region;
@@ -433,8 +438,7 @@ name and port, Nginx proxying to a hostname that does not exist in Kubernetes, t
 running as root, invalid single-line HCL, an upper-case GHCR owner breaking `docker push`,
 no `terraform.tfvars.example`, and missing EBS storage support on EKS.
 
-## 16. Grading checklist and demo script
+## 16. Grading evidence
 
-* [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md): 45 screenshots of the running system, including the real AWS VPC + EKS environment, one section per rubric module (M1–M10).
-* [docs/SUBMISSION-CHECKLIST.md](docs/SUBMISSION-CHECKLIST.md): every rubric line → file/evidence → command to capture the screenshot.
-* [docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md): a 12–15 minute live presentation flow, including the *commit → pipeline → deployment update* moment.
+* [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md): screenshots of the running system, including the real AWS VPC + EKS environment, one section per rubric module (M1–M10).
+* [docs/SUBMISSION-CHECKLIST.md](docs/SUBMISSION-CHECKLIST.md): every rubric criterion mapped to how it is met and where the evidence is.
