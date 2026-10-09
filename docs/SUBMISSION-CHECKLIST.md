@@ -16,7 +16,7 @@ are indexed in [SCREENSHOTS.md](SCREENSHOTS.md).
 | Criterion | How it is met |
 |-----------|---------------|
 | FastAPI starts, `/health` responds (2) | `GET /health` → `{"status":"UP"}`, [m1-api-health-and-crud.png](screenshots/m1-api-health-and-crud.png) |
-| ≥ 4 REST endpoints GET/POST/PUT/DELETE (3) | 11 `/api` endpoints plus `/health`, `/ready`, `/metrics`; README §5, [m1-swagger-docs.png](screenshots/m1-swagger-docs.png) |
+| ≥ 4 REST endpoints GET/POST/PUT/DELETE (3) | 11 `/api` endpoints plus `/health`, `/ready`, `/metrics`; README Section 5, [m1-swagger-docs.png](screenshots/m1-swagger-docs.png) |
 | PostgreSQL table managed by Alembic (2) | `backend/alembic/versions/0001_create_products.py`, `0002_create_stock_movements.py`; [m1-postgres-alembic-tables.png](screenshots/m1-postgres-alembic-tables.png) |
 | Frontend renders and calls the API (2) | React UI calls `/api/products`, `/api/stats`, `/api/movements`, …; [m1-app-docker-compose.png](screenshots/m1-app-docker-compose.png) |
 | Responsive, usable UI (1) | verified at 1440 / 820 / 390 px, [responsive.png](images/responsive.png) |
@@ -105,7 +105,7 @@ are indexed in [SCREENSHOTS.md](SCREENSHOTS.md).
 | Criterion | How it is met |
 |-----------|---------------|
 | Root `README.md` explains the app (2) | [README.md](../README.md) |
-| Live demo: commit → pipeline → deployment update (3) | the UI sidebar and `GET /api/info` show the deployed commit SHA, so each update is visible; release flow in README §8 |
+| Live demo: commit → pipeline → deployment update (3) | the UI sidebar and `GET /api/info` show the deployed commit SHA, so each update is visible; release flow in README Section 8 |
 
 ---
 

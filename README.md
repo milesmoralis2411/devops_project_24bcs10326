@@ -320,7 +320,7 @@ and finishes with `helm test`.
 |-----|---|
 | http://stockpilot.localtest.me | app through the Ingress (`*.localtest.me` resolves to 127.0.0.1) |
 | http://stockpilot.localtest.me/docs | Swagger through the Ingress |
-| http://grafana.localtest.me | Grafana (`admin` / password from the secret, see §12) |
+| http://grafana.localtest.me | Grafana (`admin` / password from the secret, see Section 12) |
 | http://prometheus.localtest.me/targets | Prometheus targets |
 
 ```bash

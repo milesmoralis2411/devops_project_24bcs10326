@@ -144,5 +144,5 @@ The first plan (64 resources) included the GitHub OIDC role. The final environme
 ## M10 - Documentation and presentation
 
 * `README.md` in the repository root explains the application, architecture and every module.
-* Release flow (*commit → pipeline → deployment update*): README §8. The UI sidebar and
+* Release flow (*commit → pipeline → deployment update*): README Section 8. The UI sidebar and
   `GET /api/info` show the deployed commit SHA, which makes each update visible.
