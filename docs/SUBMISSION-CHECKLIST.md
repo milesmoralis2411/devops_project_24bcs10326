@@ -112,7 +112,7 @@ are indexed in [SCREENSHOTS.md](SCREENSHOTS.md).
 ## Submission checklist
 
 **Application**
-- [ ] GitHub repository URL submitted
+- [x] GitHub repository URL submitted
 - [x] Application runs via `docker compose up --build`
 - [x] At least 4 REST API endpoints implemented
 - [x] Alembic migration file present
@@ -153,4 +153,4 @@ are indexed in [SCREENSHOTS.md](SCREENSHOTS.md).
 
 **Documentation**
 - [x] README.md present
-- [ ] Presentation completed or recording submitted
+- [x] Presentation completed or recording submitted
