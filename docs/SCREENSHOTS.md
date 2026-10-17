@@ -146,3 +146,6 @@ The first plan (64 resources) included the GitHub OIDC role. The final environme
 * `README.md` in the repository root explains the application, architecture and every module.
 * Release flow (*commit → pipeline → deployment update*): README Section 8. The UI sidebar and
   `GET /api/info` show the deployed commit SHA, which makes each update visible.
+* Demo presentation: [presentation/StockPilot-demo.pdf](presentation/StockPilot-demo.pdf)
+  ([.pptx](presentation/StockPilot-demo.pptx)). Slide 16 traces commit `b5f9880` through CI run #6,
+  GHCR, the running pods, `/api/info` and the UI sidebar, using the screenshots above.
