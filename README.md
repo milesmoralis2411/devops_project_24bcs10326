@@ -2,7 +2,7 @@
 
 [![CI/CD](https://github.com/milesmoralis2411/devops_project_24bcs10326/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/milesmoralis2411/devops_project_24bcs10326/actions/workflows/ci-cd.yml)
 · **Evidence for every grading module: [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md)**
-· **Demo presentation: [PDF](docs/presentation/StockPilot-demo.pdf) · [PowerPoint](docs/presentation/StockPilot-demo.pptx)**
+· **Demo ([demo/](demo/)): [video (MP4)](demo/StockPilot-demo.mp4) · [slides (PDF)](demo/StockPilot-demo.pdf) · [PowerPoint](demo/StockPilot-demo.pptx)**
 
 **StockPilot** is a small SaaS-style inventory management system for warehouses and shops.
 Staff keep a catalogue of products (SKU, supplier, bin location, price, reorder level),
@@ -113,8 +113,8 @@ flowchart LR
 ├── monitoring/               kube-prometheus-stack + Traefik values, monitoring guide
 ├── scripts/                  local-k8s-up, bootstrap-cluster, smoke-test, load-test, eks-teardown
 ├── troubleshooting/          4 broken manifests + runbook
-└── docs/                     AWS guide, security notes, grading evidence, screenshots,
-                              demo presentation (presentation/)
+├── demo/                     demo video (MP4) and slide deck (PDF + PowerPoint)
+└── docs/                     AWS guide, security notes, grading evidence, screenshots
 ```
 
 ## 4. Run it locally with Docker Compose
@@ -444,4 +444,5 @@ no `terraform.tfvars.example`, and missing EBS storage support on EKS.
 
 * [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md): screenshots of the running system, including the real AWS VPC + EKS environment, one section per rubric module (M1–M10).
 * [docs/SUBMISSION-CHECKLIST.md](docs/SUBMISSION-CHECKLIST.md): every rubric criterion mapped to how it is met and where the evidence is.
-* [docs/presentation/StockPilot-demo.pdf](docs/presentation/StockPilot-demo.pdf) ([PowerPoint](docs/presentation/StockPilot-demo.pptx)): the 19-slide demo presentation, covering the application, architecture, every module M1–M9 with its evidence, the live *commit → pipeline → deployment update* flow, and commit `b5f9880` traced from its CI run through GHCR to the running pods and the UI.
+* [demo/StockPilot-demo.mp4](demo/StockPilot-demo.mp4): the 9-minute narrated demo video (1080p, English subtitles). It walks through every module on the running system and records a live *commit → pipeline → deployment update*: commit `44fae08` goes through CI run #12, GHCR, a Trivy check, `helm upgrade` and the UI. Chapters are listed in [demo/README.md](demo/README.md).
+* [demo/StockPilot-demo.pdf](demo/StockPilot-demo.pdf) ([PowerPoint](demo/StockPilot-demo.pptx)): the 19-slide demo presentation, covering the application, architecture, every module M1–M9 with its evidence, the live *commit → pipeline → deployment update* flow, and commit `b5f9880` traced from its CI run through GHCR to the running pods and the UI.

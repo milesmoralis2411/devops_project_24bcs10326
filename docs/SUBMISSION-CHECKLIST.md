@@ -105,7 +105,7 @@ are indexed in [SCREENSHOTS.md](SCREENSHOTS.md).
 | Criterion | How it is met |
 |-----------|---------------|
 | Root `README.md` explains the app (2) | [README.md](../README.md) |
-| Live demo: commit → pipeline → deployment update (3) | the UI sidebar and `GET /api/info` show the deployed commit SHA, so each update is visible; release flow in README Section 8; demo presentation [StockPilot-demo.pdf](presentation/StockPilot-demo.pdf) ([.pptx](presentation/StockPilot-demo.pptx)), slides 15–16 |
+| Live demo: commit → pipeline → deployment update (3) | the UI sidebar and `GET /api/info` show the deployed commit SHA, so each update is visible; release flow in README Section 8; recorded live demo in [demo/StockPilot-demo.mp4](../demo/StockPilot-demo.mp4) from 3:49 (commit `44fae08` → CI run #12 → GHCR → `helm upgrade` → UI); demo presentation [StockPilot-demo.pdf](../demo/StockPilot-demo.pdf) ([.pptx](../demo/StockPilot-demo.pptx)), slides 15–16 |
 
 ---
 
