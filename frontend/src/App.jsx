@@ -26,7 +26,7 @@ const EMPTY_STATS = {
 const REFRESH_MS = 30_000;
 
 const TITLES = {
-  dashboard: ['WAREHOUSE / OVERVIEW', 'Inventory dashboard', 'Live stock levels, reorder alerts and recent movements.'],
+  dashboard: ['WAREHOUSE / OVERVIEW', 'Inventory dashboard', 'Stock levels, reorder alerts and recent movements across every bin location.'],
   products: ['WAREHOUSE / CATALOGUE', 'Products', 'Search, filter and manage every SKU in the warehouse.'],
   movements: ['WAREHOUSE / AUDIT', 'Movement log', 'Every receipt, sale, return and write-off, newest first.'],
 };
